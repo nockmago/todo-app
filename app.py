@@ -88,7 +88,7 @@ def create_list():
         return jsonify(body)
 
 
-# Checkbox route handler
+# todo checkbox route handler
 
 @app.route('/todos/<todo_id>/set-completed', methods=['POST'])
 def set_completed(todo_id):
@@ -104,12 +104,52 @@ def set_completed(todo_id):
 
     return redirect(url_for('index'))
 
+# list checkbox route handler
+
+@app.route('/lists/<list_id>/set-completed', methods=['POST'])
+def list_completed(list_id):
+    error = False
+    try: 
+        completed = request.get_json()['completed']
+        list_item = TodoList.query.get(list_id)
+        list_item.completed = completed
+        for todo in list_item.todos: 
+            todo.completed = completed
+        db.session.commit()
+    except:
+        db.session.rollback()
+        error=True
+    finally:
+        db.session.close()
+
+    if error:
+        abort(500)
+    else: 
+        return redirect(url_for('get_list_todos', list_id=list_id))
+
 
 # Delete button route handler
 @app.route('/todos/<todo_id>/delete', methods=['DELETE'])
 def delete_item(todo_id): 
     try: 
         Todo.query.filter_by(id=todo_id).delete()
+        db.session.commit()
+    except: 
+        print('error!!!!')
+        db.session.rollback()
+    finally: 
+        db.session.close()
+
+    return jsonify({'success':True})
+
+# Delete list route handler
+@app.route('/lists/<list_id>/delete', methods=['DELETE'])
+def delete_list(list_id):
+    try: 
+        list = TodoList.query.get(list_id)
+        for todo in list.todos:
+            db.session.delete(todo)
+        db.session.delete(list)
         db.session.commit()
     except: 
         print('error!!!!')
