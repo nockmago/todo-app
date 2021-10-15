@@ -51,6 +51,7 @@
             <ul id='lists'>
                 {% for list in lists %}
                 <li>
+                    <input class ='check-completed' type='checkbox' data-id = "{{list.id}}" {% if list.completed %} checked {% endif %}/>
                     <a href='/lists/{{list.id}}'>{{list.name}}</a>
                 </li>
                 {% endfor %}
